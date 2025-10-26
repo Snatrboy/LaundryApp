@@ -1,128 +1,99 @@
-import 'package:dio/dio.dart';
-import '../utils/app_logger.dart';
-import 'http_client.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../models/laundry_service_model.dart';
 
-class LaundryApiService {
-  final HttpClient _httpClient = HttpClient();
+class HttpService {
+  static const String baseUrl =
+      'https://68fda02f7c700772bb1189af.mockapi.io/api/v1/laundryServices';
 
-  // Contoh: Get semua layanan laundry
-  Future<List<dynamic>?> getAllServices() async {
+  // Fetch all services with manual error handling
+  Future<Map<String, dynamic>> fetchServices() async {
+    final stopwatch = Stopwatch()..start();
+
     try {
-      AppLogger.info(' Fetching all laundry services');
+      print('🟢 [HTTP] Starting request...');
+      print('🟢 [HTTP] URL: $baseUrl/services');
 
-      final response = await _httpClient.get('/posts'); // Contoh endpoint
+      final response = await http.get(
+        Uri.parse('$baseUrl/services'),
+        headers: {'Content-Type': 'application/json'},
+      );
 
-      if (response != null && response.statusCode == 200) {
-        AppLogger.info(
-          ' Successfully fetched ${response.data.length} services',
-        );
-        return response.data;
+      stopwatch.stop();
+      final duration = stopwatch.elapsedMilliseconds;
+
+      print('🟢 [HTTP] Status Code: ${response.statusCode}');
+      print('🟢 [HTTP] Response Time: ${duration}ms');
+      print('🟢 [HTTP] Response Size: ${response.body.length} bytes');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        final services = jsonData
+            .map((json) => LaundryService.fromJson(json))
+            .toList();
+
+        print('🟢 [HTTP] Success: ${services.length} services loaded');
+
+        return {
+          'success': true,
+          'data': services,
+          'duration': duration,
+          'statusCode': response.statusCode,
+          'error': null,
+        };
       } else {
-        AppLogger.warning(
-          ' Failed to fetch services: Status ${response?.statusCode}',
-        );
-        return null;
+        print('🔴 [HTTP] Error: ${response.statusCode}');
+        return {
+          'success': false,
+          'data': null,
+          'duration': duration,
+          'statusCode': response.statusCode,
+          'error': 'HTTP Error ${response.statusCode}',
+        };
       }
-    } catch (e, stackTrace) {
-      AppLogger.error(' Error fetching services', e, stackTrace);
-      return null;
+    } catch (e) {
+      stopwatch.stop();
+      print('🔴 [HTTP] Exception: $e');
+
+      return {
+        'success': false,
+        'data': null,
+        'duration': stopwatch.elapsedMilliseconds,
+        'statusCode': 0,
+        'error': e.toString(),
+      };
     }
   }
 
-  // Contoh: Get service by ID
-  Future<Map<String, dynamic>?> getServiceById(int id) async {
+  // Simulate error scenario
+  Future<Map<String, dynamic>> fetchWithError() async {
+    final stopwatch = Stopwatch()..start();
+
     try {
-      AppLogger.info(' Fetching service with ID: $id');
+      print('🟢 [HTTP] Testing error handling...');
 
-      final response = await _httpClient.get('/posts/$id');
+      final response = await http.get(Uri.parse('$baseUrl/invalid-endpoint'));
 
-      if (response != null && response.statusCode == 200) {
-        AppLogger.info(
-          ' Successfully fetched service: ${response.data['title']}',
-        );
-        return response.data;
-      } else {
-        AppLogger.warning(' Service not found: ID $id');
-        return null;
-      }
-    } catch (e, stackTrace) {
-      AppLogger.error(' Error fetching service by ID', e, stackTrace);
-      return null;
-    }
-  }
+      stopwatch.stop();
 
-  // Contoh: Create order
-  Future<bool> createOrder(Map<String, dynamic> orderData) async {
-    try {
-      AppLogger.info(' Creating new order', orderData);
+      return {
+        'success': false,
+        'data': null,
+        'duration': stopwatch.elapsedMilliseconds,
+        'statusCode': response.statusCode,
+        'error': 'Endpoint not found',
+      };
+    } catch (e) {
+      stopwatch.stop();
+      print('🔴 [HTTP] Caught error: $e');
 
-      final response = await _httpClient.post('/posts', data: orderData);
-
-      if (response != null && response.statusCode == 201) {
-        AppLogger.info(' Order created successfully: ${response.data['id']}');
-        return true;
-      } else {
-        AppLogger.warning(' Failed to create order');
-        return false;
-      }
-    } catch (e, stackTrace) {
-      AppLogger.error(' Error creating order', e, stackTrace);
-      return false;
-    }
-  }
-
-  // Contoh: Update order
-  Future<bool> updateOrder(int id, Map<String, dynamic> orderData) async {
-    try {
-      AppLogger.info(' Updating order ID: $id', orderData);
-
-      final response = await _httpClient.put('/posts/$id', data: orderData);
-
-      if (response != null && response.statusCode == 200) {
-        AppLogger.info(' Order updated successfully');
-        return true;
-      } else {
-        AppLogger.warning(' Failed to update order');
-        return false;
-      }
-    } catch (e, stackTrace) {
-      AppLogger.error(' Error updating order', e, stackTrace);
-      return false;
-    }
-  }
-
-  // Contoh: Delete order
-  Future<bool> deleteOrder(int id) async {
-    try {
-      AppLogger.info(' Deleting order ID: $id');
-
-      final response = await _httpClient.delete('/posts/$id');
-
-      if (response != null && response.statusCode == 200) {
-        AppLogger.info(' Order deleted successfully');
-        return true;
-      } else {
-        AppLogger.warning(' Failed to delete order');
-        return false;
-      }
-    } catch (e, stackTrace) {
-      AppLogger.error(' Error deleting order', e, stackTrace);
-      return false;
-    }
-  }
-
-  // Simulasi error untuk testing
-  Future<void> testErrorHandling() async {
-    try {
-      AppLogger.info('Testing error handling');
-
-      // Test timeout
-      await _httpClient.get('/posts/999999');
-
-      // Test invalid endpoint
-      await _httpClient.get('/invalid-endpoint');
-    } catch (e, stackTrace) {
-      AppLogger.error(' Test error occurred', e, stackTrace);
+      return {
+        'success': false,
+        'data': null,
+        'duration': stopwatch.elapsedMilliseconds,
+        'statusCode': 0,
+        'error': 'Manual Try-Catch: $e',
+      };
     }
   }
 }
