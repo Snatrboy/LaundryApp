@@ -46,24 +46,4 @@ class HomeController extends GetxController {
       isLoading.value = false;
     }
   }
-
-  void navigateToExperiments() {
-    Get.toNamed('/experiments-menu');
-  }
-
-  void navigateToHttpTest() {
-    Get.toNamed('/laundry-http');
-  }
-
-  void navigateToDioTest() {
-    Get.toNamed('/laundry-dio');
-  }
-
-  void navigateToAsyncDemo() {
-    Get.toNamed('/async-demo');
-  }
-
-  void navigateToLoginDemo() {
-    Get.toNamed('/login-demo');
-  }
 }
