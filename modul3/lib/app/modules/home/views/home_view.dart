@@ -23,7 +23,7 @@ class HomeView extends GetView<HomeController> {
             icon: const Icon(Icons.analytics, color: Colors.white),
             tooltip: 'Analisis HTTP',
             onPressed: () {
-              Get.toNamed('/experiments-menu');
+              // Get.toNamed('/experiments-menu');
             },
           ),
         ],

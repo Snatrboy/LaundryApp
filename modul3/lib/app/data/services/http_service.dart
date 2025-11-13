@@ -4,7 +4,7 @@ import '../models/laundry_service_model.dart';
 
 class HttpService {
   static const String baseUrl =
-      'https://68fda02f7c700772bb1189af.mockapi.io/api/v1/laundryServices';
+      'https://6915596b84e8bd126af996e3.mockapi.io';
 
   // Fetch all services with manual error handling
   Future<Map<String, dynamic>> fetchServices() async {
